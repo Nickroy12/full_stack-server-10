@@ -26,7 +26,18 @@ async function run() {
   try {
      const db = client.db('fullstack_db');
      const recipeCollection = db.collection('recipes')
-
+      app.get('/api/recipe', async(req , res)=>{
+        const query ={}
+        if(req.query.userId){
+          query.userId = req.query.userId;
+        }
+        if(req.query.status){
+          query.status = req.query.status;
+        }
+        const cursor = recipeCollection.find(query)
+        const result = await cursor.toArray()
+        res.send(result)
+      })
      app.post('/api/recipe',async(req ,res)=>{
       const recipe = req.body
       const result = await recipeCollection.insertOne(recipe)
