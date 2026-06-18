@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const port = 5000;
+const port =process.env.NEXT_PUBLIC_SERVER_URL || 5000;
 require("dotenv").config();
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -24,9 +24,14 @@ app.get("/", (req, res) => {
 
 async function run() {
   try {
-app.get('/api/cook',async (req, res)=>{
-    res.send("hi nick")
-})
+     const db = client.db('fullstack_db');
+     const recipeCollection = db.collection('recipes')
+
+     app.post('/api/recipe',async(req ,res)=>{
+      const recipe = req.body
+      const result = await recipeCollection.insertOne(recipe)
+      res.send(result)
+     })
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
