@@ -35,7 +35,7 @@ async function run() {
         query.status = req.query.status;
       }
       const cursor = recipeCollection.find(query);
-      const result = await cursor.toArray();
+      const result = await cursor.toArray()
       res.send(result);
     });
     app.get("/api/recipe/:id", async (req, res) => {
@@ -46,6 +46,20 @@ async function run() {
       const result = await recipeCollection.findOne(query)
       res.send(result)
     });
+    app.patch('/api.recipe/:id', async (req, res)=>{
+      const id = req.params.id;
+      const updateStatus = req.body;
+      const filter = {
+        _id: new ObjectId(id)
+      }
+      const updateDoc = {
+        $set:{
+          status: updateStatus.status
+        }
+      }
+      const result = await recipeCollection.updateOne(filter , updateDoc)
+      res.send(result)
+    })
     app.post("/api/recipe", async (req, res) => {
       const recipe = req.body;
       const result = await recipeCollection.insertOne(recipe);
