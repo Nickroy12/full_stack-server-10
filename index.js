@@ -26,27 +26,18 @@ async function run() {
   try {
     const db = client.db("fullstack_db");
     const recipeCollection = db.collection("recipes");
-app.get("/api/recipe", async (req, res) => {
-  const query = {};
-
-  if (req.query.userId) {
-    query.userId = req.query.userId;
-  }
-  if (req.query.status) {
-    query.status = req.query.status;
-  }
-
-  // ক্যাটাগরি ফিল্টার ($in ব্যবহার করে)
-  if (req.query.categories) {
-    // ফ্রন্টএন্ড থেকে আসা "Dessert,Beef" কে ['Dessert', 'Beef'] অ্যারেতে রূপান্তর
-    const categoryArray = req.query.categories.split(",");
-    query.category = { $in: categoryArray }; 
-  }
-
-  const cursor = recipeCollection.find(query);
-  const result = await cursor.toArray();
-  res.send(result);
-});
+    app.get("/api/recipe", async (req, res) => {
+      const query = {};
+      if (req.query.userId) {
+        query.userId = req.query.userId;
+      }
+      if (req.query.status) {
+        query.status = req.query.status;
+      }
+      const cursor = recipeCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     app.get("/api/recipe/:id", async (req, res) => {
       const id = req.params.id;
       const query = {
