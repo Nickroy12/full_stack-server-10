@@ -35,7 +35,7 @@ async function run() {
         query.status = req.query.status;
       }
       const cursor = recipeCollection.find(query);
-      const result = await cursor.toArray()
+      const result = await cursor.toArray();
       res.send(result);
     });
     app.get("/api/recipe/:id", async (req, res) => {
@@ -43,28 +43,57 @@ async function run() {
       const query = {
         _id: new ObjectId(id),
       };
-      const result = await recipeCollection.findOne(query)
-      res.send(result)
+      const result = await recipeCollection.findOne(query);
+      res.send(result);
     });
-    app.patch('/api.recipe/:id', async (req, res)=>{
+    app.patch("/api.recipe/:id", async (req, res) => {
       const id = req.params.id;
       const updateStatus = req.body;
       const filter = {
-        _id: new ObjectId(id)
-      }
+        _id: new ObjectId(id),
+      };
       const updateDoc = {
-        $set:{
-          status: updateStatus.status
-        }
-      }
-      const result = await recipeCollection.updateOne(filter , updateDoc)
-      res.send(result)
-    })
+        $set: {
+          status: updateStatus.status,
+        },
+      };
+      const result = await recipeCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
     app.post("/api/recipe", async (req, res) => {
       const recipe = req.body;
       const result = await recipeCollection.insertOne(recipe);
       res.send(result);
     });
+app.patch("/api/recipe/:id/like", async (req, res) => {
+  const id = req.params.id;
+  const { userId } = req.body; // ফ্রন্টএন্ড থেকে { userId } অবজেক্ট আকারে আসবে
+  const filter = { _id: new ObjectId(id) };
+
+  const recipe = await recipeCollection.findOne(filter);
+
+  // ইউজার আগে লাইক করেছে কিনা চেক
+  const hasLiked = recipe.likedBy && recipe.likedBy.includes(userId);
+
+  let updateDoc = {};
+
+  if (!hasLiked) {
+    updateDoc = {
+      $inc: { likesCount: 1 },
+      $push: { likedBy: userId },
+    };
+  } else {
+    updateDoc = {
+      $inc: { likesCount: -1 },
+      $pull: { likedBy: userId },
+    };
+  }
+
+  const result = await recipeCollection.updateOne(filter, updateDoc);
+  
+  
+  res.send({ result, hasLiked: !hasLiked });
+});
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
