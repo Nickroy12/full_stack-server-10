@@ -26,6 +26,9 @@ async function run() {
   try {
     const db = client.db("fullstack_db");
     const recipeCollection = db.collection("recipes");
+    const planCollections = db.collection('plans')
+    const subscriptions = db.collection('subscription')
+    const userCollections = db.collection('user')
     app.get("/api/recipe", async (req, res) => {
       const query = {};
       if (req.query.userId) {
@@ -38,6 +41,15 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get('/api/plans', async(req,res)=>{
+      const query ={}
+    
+      if(req.query.plan_id){
+        query.id = req.query.plan_id
+      }
+      const result = await planCollections.findOne(query)
+      res.send(result)
+    })
     app.get("/api/recipe/:id", async (req, res) => {
       const id = req.params.id;
       const query = {
@@ -46,6 +58,7 @@ async function run() {
       const result = await recipeCollection.findOne(query);
       res.send(result);
     });
+
     app.patch("/api.recipe/:id", async (req, res) => {
       const id = req.params.id;
       const updateStatus = req.body;
@@ -94,6 +107,34 @@ app.patch("/api/recipe/:id/like", async (req, res) => {
   
   res.send({ result, hasLiked: !hasLiked });
 });
+app.post('/api/subscription', async(req ,res)=>{
+  const data = req.body
+   const subInfo = {
+    ...data,
+    createdAt:new Date()
+   }
+   const result = await subscriptions.insertOne(subInfo)
+   const filter = {email : data.email}
+
+    const updateDocument = {
+            $set:{
+              plan:data.plansId
+            }
+    }
+   
+    const updatedResult = await userCollections.updateOne(filter , updateDocument)
+    res.send(updatedResult)
+})
+   app.get("/api/subscription", async (req, res) => {
+      const query = {};
+      if (req.query.sub_id) {
+        query.email = req.query.sub_id;
+      }
+    
+      const cursor = subscriptions.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
