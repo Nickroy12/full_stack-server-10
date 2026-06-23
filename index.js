@@ -41,6 +41,45 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/api/recipe/filter", async (req, res) => {
+  try {
+    const { page = 1, limit = 6, categories, userId, status } = req.query;
+    
+    // 1. Build the query object
+    const query = {};
+
+    if (userId) query.userId = userId;
+    if (status) query.status = status;
+
+    // Handle multiple categories using $in
+    if (categories) {
+      // Expecting a comma-separated string from frontend (e.g., "Dessert,Breakfast")
+      const categoryArray = categories.split(",");
+      query.category = { $in: categoryArray };
+    }
+
+    // 2. Setup Pagination variables
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const maxLimit = parseInt(limit);
+
+    // 3. Fetch data and total count for frontend calculations
+    const totalRecipes = await recipeCollection.countDocuments(query);
+    const recipes = await recipeCollection
+      .find(query)
+      .sort({ _id: -1 }) // Sorts by newest first (replaces frontend .reverse())
+      .skip(skip)
+      .limit(maxLimit)
+      .toArray();
+
+    res.send({
+      recipes,
+      totalPages: Math.ceil(totalRecipes / maxLimit),
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    res.status(500).send({ message: "Error fetching filtered recipes", error });
+  }
+});
     app.get('/api/plans', async(req,res)=>{
       const query ={}
     
