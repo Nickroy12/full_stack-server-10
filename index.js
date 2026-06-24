@@ -68,7 +68,7 @@ const verifyToken = async (req, res, next) => {
               if (!user) {
                 return res.status(401).send({ message: 'unauthorized access' })
             }
-            // set data in the req object
+            // set data in the req objecto
             req.user = user;
             next();
         }
